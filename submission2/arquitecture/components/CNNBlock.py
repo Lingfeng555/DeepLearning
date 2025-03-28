@@ -89,8 +89,8 @@ class CNNBlock(nn.Module):
             #print(f"patata post convolucional {phase}",x[0])
             for _ in range(self.pool_depth):
                 #print("\tLayer: ", iterator)
-                print(f"patata convolucional input de la capa:  {iterator}",x[0])
-                x =  self.layers[iterator](x)
+                x =  F.relu(self.layers[iterator](x))
+                print(f"patata convolucional output de la capa:  {iterator}",x) #NAN ERROR MUST
                 iterator += 1
             
             x = self.pool(x)
