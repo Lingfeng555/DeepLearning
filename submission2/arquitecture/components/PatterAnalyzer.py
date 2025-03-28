@@ -59,11 +59,10 @@ class PatternAnalyzer(nn.Module):
     
     def forward(self, x):
         x = x.unsqueeze(1)
-        print(x)
         features = self.cnn_block(x)
-        print(features)
+        #print("patata",features)
         attention_values = self.attention_block(features)
-        print(features)
+        #print(features)
         #print("features[:, 1, :, :] :", features[:, 1, :, :])
         #print("Attention.shape (batch_size, n_features, ,attention value) :", attention_values.shape)
         x = torch.stack([self.experts[i](features[:, i, :, :], attention_values[:, i, :]) for i in range(len(self.experts))], dim=1)

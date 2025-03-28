@@ -1,6 +1,7 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+import torch.nn.init as init
 import warnings
 
 class CNNBlock(nn.Module):
@@ -79,23 +80,26 @@ class CNNBlock(nn.Module):
         #print("last phase:",{self.last_phase})
         #print(self.out_put_size)
 
+        print("patata pre convolucional",x)
+        
         iterator = 0
         for phase in range(self.phases):
 
-            print("phase: ", phase)
-
+            #print("phase: ", phase)
+            #print(f"patata post convolucional {phase}",x[0])
             for _ in range(self.pool_depth):
-                print("\tLayer: ", iterator)
-                x =  F.relu(self.layers[iterator](x))
+                #print("\tLayer: ", iterator)
+                print(f"patata convolucional input de la capa:  {iterator}",x[0])
+                x =  self.layers[iterator](x)
                 iterator += 1
-
+            
             x = self.pool(x)
         
-        print("last phase:",{self.last_phase})
+        #print("last phase:",{self.last_phase})
 
         for _ in range(self.last_phase):
 
-            print("\tLayer: ", iterator)
+            #print("\tLayer: ", iterator)
             x =  F.relu(self.layers[iterator](x))
             iterator += 1
         
