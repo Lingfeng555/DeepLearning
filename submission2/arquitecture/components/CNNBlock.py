@@ -80,7 +80,7 @@ class CNNBlock(nn.Module):
         #print("last phase:",{self.last_phase})
         #print(self.out_put_size)
 
-        print("patata pre convolucional",x)
+        #print("patata pre convolucional",x)
         
         iterator = 0
         for phase in range(self.phases):
@@ -90,7 +90,7 @@ class CNNBlock(nn.Module):
             for _ in range(self.pool_depth):
                 #print("\tLayer: ", iterator)
                 x =  F.relu(self.layers[iterator](x))
-                print(f"patata convolucional output de la capa:  {iterator}",x) #NAN ERROR MUST
+                #print(f"patata convolucional output de la capa:  {iterator}",x) #NAN ERROR MUST
                 iterator += 1
             
             x = self.pool(x)
@@ -106,7 +106,7 @@ class CNNBlock(nn.Module):
         if self.last_phase != 0 : x = self.pool(x)
 
         # normalize and return the result
-        return self.batch_norm(x)
+        return x
     
     def n_parameters(self) -> int: return sum(p.numel() for p in self.parameters())
 

@@ -60,7 +60,6 @@ class PatternAnalyzer(nn.Module):
     def forward(self, x):
         x = x.unsqueeze(1)
         features = self.cnn_block(x)
-        #print("patata",features)
         attention_values = self.attention_block(features)
         #print(features)
         #print("features[:, 1, :, :] :", features[:, 1, :, :])

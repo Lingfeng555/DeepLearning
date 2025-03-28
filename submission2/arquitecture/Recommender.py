@@ -36,13 +36,16 @@ class Recommender(nn.Module):
     def forward(self, user_data, ratings_matrix):
         
         user_output = self.user_data_analyzer(user_data)
-        #print("User analyzer output: ", user_output)
+        #print("User outputs have NA", torch.isnan(user_output).any(), user_output.size(), user_output.dtype, user_output.requires_grad)
+        
         ratings_patters_information = self.pattern_analyzer(ratings_matrix)
-        #print("ratings_patters_information output: ", ratings_patters_information)
-        concatenated = torch.cat([user_output, ratings_patters_information], dim=1)
+        #print("Rating patterns have NA", torch.isnan(ratings_patters_information).any(), ratings_patters_information.size(), ratings_patters_information.dtype, ratings_patters_information.requires_grad)
         
+        concatenated = torch.concat([user_output, ratings_patters_information], dim=-1)
+        #print("Concatenated have NA", torch.isnan(concatenated).any(), concatenated.size())
+
         ret = self.final_regressor(concatenated)
-        
+        #print("Regression have NA", torch.isnan(ret).any(), ret.size())
         return ret
     
 if __name__ == "__main__":

@@ -108,7 +108,7 @@ class MovieLensDataset(Dataset):
         rating_hist["years_since_review"] = self.scaler.fit_transform(rating_hist[["years_since_review"]])
         rating_hist["rating"] = self.scaler.fit_transform(rating_hist[["rating"]])
         
-        rating_train = rating_hist.head(self.users_min_number_of_ratings)
+        rating_train = rating_hist.head(self.users_min_number_of_ratings).fillna(0)
         rating_test = rating_hist.tail(len(rating_hist)- self.users_min_number_of_ratings)
         
         cols_to_multiply = rating_test.columns.difference(["timestamp", "rating", "years_since_review"])
@@ -121,6 +121,14 @@ class MovieLensDataset(Dataset):
         min_val = rating_test_tensor.min()
         max_val = rating_test_tensor.max()
         
-        rating_test_tensor = (rating_test_tensor - min_val) / (max_val - min_val)
+        divider = (max_val - min_val) if (max_val - min_val) != 0 else 1
         
+        rating_test_tensor = (rating_test_tensor - min_val) / divider
+        
+        if torch.isnan(user_data_tensor).any():
+            print("Found NaNs in user_data_tensor")
+        if torch.isnan(rating_train_tensor).any():
+            print("Found NaNs in rating_train_tensor")
+        if torch.isnan(rating_test_tensor).any():
+            print("Found NaNs in rating_test_tensor")
         return user_data_tensor, rating_train_tensor, rating_test_tensor

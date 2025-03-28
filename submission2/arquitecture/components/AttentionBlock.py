@@ -52,6 +52,4 @@ class AttentionBlock(nn.Module):
         # Project attention output to the desired shape
         attn_out = self.out_proj(attn_out)
 
-        attn_out = self.batch_norm(attn_out)
-
         return attn_out
