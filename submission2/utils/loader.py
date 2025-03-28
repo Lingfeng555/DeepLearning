@@ -54,7 +54,7 @@ class MovieLensDataset(Dataset):
                             header=None,        
                             names= "user id | age | gender | occupation | zip code".split(" | "),     
                             encoding='latin-1')
-        
+
         users["gender"] = users["gender"].apply(lambda x: 1 if x == "M" else 0)
         users["occupation"] = users["occupation"]
         users["occupation"] = pd.Categorical(users["occupation"])
@@ -88,6 +88,7 @@ class MovieLensDataset(Dataset):
             test_size=0.1,
             random_state=seed
         )
+        
         self.users = {}
         self.users["val"] = users_val
         self.users["test"] = users_test
@@ -95,7 +96,7 @@ class MovieLensDataset(Dataset):
         
         self.split = split
         
-    def __len__(self): return len(self.ratings)
+    def __len__(self): return len(self.users[self.split])
     
     def __getitem__(self, index):
         user = self.users[self.split].iloc[index].astype(int)
@@ -113,9 +114,9 @@ class MovieLensDataset(Dataset):
         cols_to_multiply = rating_test.columns.difference(["timestamp", "rating", "years_since_review"])
         rating_test = rating_test.loc[:, cols_to_multiply].mul(rating_test["rating"], axis=0).astype('float').sum()
         
-        user_data_tensor = torch.tensor(user_data.values)
-        rating_train_tensor = torch.tensor(rating_train.values)
-        rating_test_tensor = torch.tensor(rating_test.values)
+        user_data_tensor = torch.tensor(user_data.values, dtype=torch.float)
+        rating_train_tensor = torch.tensor(rating_train.values, dtype=torch.float)
+        rating_test_tensor = torch.tensor(rating_test.values, dtype=torch.float)
         
         min_val = rating_test_tensor.min()
         max_val = rating_test_tensor.max()

@@ -2,12 +2,12 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-class UserDataMLP (nn.Module):
+class VeryBasicMLP (nn.Module):
     
     layers: nn.ModuleList
     
     def __init__(self, input_size: int, output_size: int, factor : int):
-        super(UserDataMLP, self).__init__()
+        super(VeryBasicMLP, self).__init__()
         
         hidden_layers = [input_size]
         
@@ -37,7 +37,7 @@ if __name__ == '__main__':
     user_data = torch.randn(input_size)
     
     # Instanciar el modelo con el tamaño de entrada obtenido de los datos
-    model = UserDataMLP(input_size=user_data.size()[0], output_size=output_size, factor=factor)
+    model = VeryBasicMLP(input_size=user_data.size()[0], output_size=output_size, factor=factor)
     
     # Imprimir la arquitectura del modelo
     print("Arquitectura del modelo:")

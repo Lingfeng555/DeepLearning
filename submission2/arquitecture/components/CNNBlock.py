@@ -112,7 +112,7 @@ if __name__ == '__main__':
     width=22
 
     model = CNNBlock(height=height, width=width, feature=[1,16,16,16,32,32,32], pool_depth=3)
-
+    
     input_tensor = torch.randn(32,1, height, width)  
 
     output = model(input_tensor)
