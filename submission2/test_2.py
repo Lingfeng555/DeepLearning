@@ -17,6 +17,7 @@ SEED = 55
 BATCH = 300
 NUN_THREADS = 6
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+#DEVICE = "cpu"
 NUM_EPOCH = 400
 LEARNING_RATE = 0.0005
 
@@ -30,6 +31,20 @@ train_dataloader = DataLoader(train_dataset, batch_size=BATCH, shuffle=True, num
 test_dataloader = DataLoader(test_dataset, batch_size=BATCH, shuffle=True, num_workers=NUN_THREADS)
 val_dataloader = DataLoader(val_dataset, batch_size=BATCH, shuffle=True, num_workers=NUN_THREADS)
 
+for user_data_tensor, rating_train_tensor, rating_test_tensor in train_dataloader:
+    print("Rating Tensor Shape:", rating_train_tensor.size())
+    print("User Data Tensor Shape:", user_data_tensor.size())
+    print(f"Max index in rating tensor: {rating_train_tensor.max().item()}")
+    print(f"Min index in rating tensor: {rating_train_tensor.min().item()}")
+    
+    # Get true num_ratings from data
+    batch_size, num_ratings_actual, rating_size = rating_train_tensor.size()
+    user_batch_size, user_data_dim = user_data_tensor.size()
+    
+    print(f"Actual num_ratings from tensor: {num_ratings_actual}")
+    print(f"Actual user_data_input_dim: {user_data_dim}")
+    break
+
 # %%
 num_embeddings = 100
 embedding_dim = 16
@@ -40,7 +55,7 @@ word_size = 8
 final_mlp_factor = 2
 embedding_output = 19
     
-model = Recommender_2(ratings_num_embeddings = 1000, 
+model = Recommender_2(ratings_num_embeddings = 10000, 
                  ratings_embedding_dim = 16, 
                  ratings_num_ratings = 22, #Fixed
                  ratings_lstm_hidden_size  = 32 , 
@@ -48,7 +63,7 @@ model = Recommender_2(ratings_num_embeddings = 1000,
                  ratings_word_size = 8,
                  ratings_final_mlp_factor = 16,
                  ratings_embedding_output = 40 ,
-                 user_num_embeddings = 1000,
+                 user_num_embeddings = 10000,
                  user_embedding_dim = 16,
                  user_embedding_output = 15,
                  user_data_input_dim = 23, #Fixed
@@ -59,6 +74,12 @@ model = Recommender_2(ratings_num_embeddings = 1000,
 
 print(f"Model parameters: {sum(p.numel() for p in model.parameters())}")
 
+for user_data_tensor, rating_train_tensor, rating_test_tensor in train_dataloader:
+    print(rating_train_tensor.size())
+    print(user_data_tensor.size())
+    print(f"Max index in tensor: {rating_train_tensor.max().item()}")
+    model(rating_train_tensor.to(DEVICE), user_data_tensor.to(DEVICE)).to(DEVICE)
+    break
 # %%
 # Crear el optimizador, por ejemplo, usando Adam con una tasa de aprendizaje de 0.001
 optimizer = optim.Adam(model.parameters(), lr=LEARNING_RATE)

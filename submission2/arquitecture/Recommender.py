@@ -145,7 +145,7 @@ def test_recommender():
     print(f"Model parameters: {sum(p.numel() for p in model.parameters())}")
 
 def test_recommender_2():
-    model = Recommender_2(ratings_num_embeddings = 100, 
+    model = Recommender_2(ratings_num_embeddings = 1000, 
                  ratings_embedding_dim = 16, 
                  ratings_num_ratings = 22, #Fixed
                  ratings_lstm_hidden_size  = 32 , 
@@ -153,7 +153,7 @@ def test_recommender_2():
                  ratings_word_size = 8,
                  ratings_final_mlp_factor = 16,
                  ratings_embedding_output = 40 ,
-                 user_num_embeddings = 100,
+                 user_num_embeddings = 1000,
                  user_embedding_dim = 16,
                  user_embedding_output = 15,
                  user_data_input_dim = 23, #Fixed
@@ -161,8 +161,8 @@ def test_recommender_2():
                  final_output_size = 19, #Fixed
                  expert_factor = 6
                  )
-    ratings_tensor = torch.randint(0, 100, size=(678, 22, 19))
-    user_data_tensor = torch.randint(0, 100, size=(678, 23))
+    ratings_tensor = torch.randint(101, 1000, size=(678, 22, 19))
+    user_data_tensor = torch.randint(101, 1000, size=(678, 23))
 
     print("Tamaño de ratings_tensor:", ratings_tensor.size())
     print("Tamaño de user_data_tensor:", user_data_tensor.size())

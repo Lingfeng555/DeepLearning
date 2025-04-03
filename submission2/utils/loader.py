@@ -106,9 +106,11 @@ class MovieLensDataset(Dataset):
         
         rating_hist = self.ratings[self.ratings["user_id"] == user_id].drop(columns=["user_id"]).sort_values(by='timestamp', ascending=True)
         rating_hist["timestamp"] = self.scaler.fit_transform(rating_hist[["timestamp"]])
-        rating_hist["timestamp"] = np.around(rating_hist[["timestamp"]] * 1000000)
+        rating_hist["timestamp"] = np.around(rating_hist[["timestamp"]] * 100)
         
+        rating_hist["years_since_review"] = self.scaler.fit_transform(rating_hist[["years_since_review"]])
         rating_hist["years_since_review"] = np.around(rating_hist["years_since_review"]*100)
+        
         rating_hist["rating"] = np.around(self.scaler.fit_transform(rating_hist[["rating"]]) * 5)
         
         rating_train = rating_hist.head(self.users_min_number_of_ratings).fillna(0)
@@ -129,13 +131,30 @@ class MovieLensDataset(Dataset):
         rating_test_tensor = (rating_test_tensor - min_val) / divider
         
         #print(rating_hist)
+        # Comprobación de NaNs y valores negativos en user_data_tensor
         if torch.isnan(user_data_tensor).any():
             print("Found NaNs in user_data_tensor")
+        if (user_data_tensor < 0).any():
+            print("Found negative values in user_data_tensor")
+
+        # Comprobación de NaNs y valores negativos en rating_train_tensor
         if torch.isnan(rating_train_tensor).any():
             print("Found NaNs in rating_train_tensor")
+        if (rating_train_tensor < 0).any():
+            print("Found negative values in rating_train_tensor")
+            negative_columns = []
+
+            for column in rating_train.columns:
+                if (rating_train[column] < 0).any():
+                    negative_columns.append(column)
+                    print(f"En la columna '{column}' se encontraron valores negativos.")
+
+        # Comprobación de NaNs y valores negativos en rating_test_tensor
         if torch.isnan(rating_test_tensor).any():
             print("Found NaNs in rating_test_tensor")
-            
+        if (rating_test_tensor < 0).any():
+            print("Found negative values in rating_test_tensor")
+    
         return user_data_tensor, rating_train_tensor.t() if self.transpose_ratings else rating_train_tensor, rating_test_tensor
 
 if __name__ == '__main__':
