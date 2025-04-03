@@ -1,7 +1,7 @@
 import pandas as pd
 from typing import Literal
 import os
-
+import numpy as np
 import torch
 from torch.utils.data import Dataset, DataLoader
 from sklearn.model_selection import train_test_split
@@ -11,7 +11,8 @@ class MovieLensDataset(Dataset):
     ratings: pd.DataFrame
     users_min_number_of_ratings: pd.DataFrame
     split : str
-    def __init__(self, ml_path: str, split: Literal["train", "val", "test"], seed: int):
+    transpose_ratings : bool
+    def __init__(self, ml_path: str, split: Literal["train", "val", "test"], transpose_ratings: bool, seed: int):
         super().__init__()
         
         self.scaler = MinMaxScaler()
@@ -35,7 +36,6 @@ class MovieLensDataset(Dataset):
             'video_release_date',
             'IMDb_URL'
         ] + genre["genre_name"].tolist()
-        
         
         movie = pd.read_csv(
             os.path.join(ml_path,"u.item"),
@@ -95,6 +95,7 @@ class MovieLensDataset(Dataset):
         self.users["train"] = users_train
         
         self.split = split
+        self.transpose_ratings = transpose_ratings
         
     def __len__(self): return len(self.users[self.split])
     
@@ -105,17 +106,19 @@ class MovieLensDataset(Dataset):
         
         rating_hist = self.ratings[self.ratings["user_id"] == user_id].drop(columns=["user_id"]).sort_values(by='timestamp', ascending=True)
         rating_hist["timestamp"] = self.scaler.fit_transform(rating_hist[["timestamp"]])
-        rating_hist["years_since_review"] = self.scaler.fit_transform(rating_hist[["years_since_review"]])
-        rating_hist["rating"] = self.scaler.fit_transform(rating_hist[["rating"]])
+        rating_hist["timestamp"] = np.around(rating_hist[["timestamp"]] * 1000000)
+        
+        rating_hist["years_since_review"] = np.around(rating_hist["years_since_review"]*100)
+        rating_hist["rating"] = np.around(self.scaler.fit_transform(rating_hist[["rating"]]) * 5)
         
         rating_train = rating_hist.head(self.users_min_number_of_ratings).fillna(0)
         rating_test = rating_hist.tail(len(rating_hist)- self.users_min_number_of_ratings)
         
         cols_to_multiply = rating_test.columns.difference(["timestamp", "rating", "years_since_review"])
         rating_test = rating_test.loc[:, cols_to_multiply].mul(rating_test["rating"], axis=0).astype('float').sum()
-        
-        user_data_tensor = torch.tensor(user_data.values, dtype=torch.float)
-        rating_train_tensor = torch.tensor(rating_train.values, dtype=torch.float)
+    
+        user_data_tensor = torch.tensor(user_data.values, dtype=torch.int32)
+        rating_train_tensor = torch.tensor(rating_train.values, dtype=torch.int32)
         rating_test_tensor = torch.tensor(rating_test.values, dtype=torch.float)
         
         min_val = rating_test_tensor.min()
@@ -125,10 +128,20 @@ class MovieLensDataset(Dataset):
         
         rating_test_tensor = (rating_test_tensor - min_val) / divider
         
+        #print(rating_hist)
         if torch.isnan(user_data_tensor).any():
             print("Found NaNs in user_data_tensor")
         if torch.isnan(rating_train_tensor).any():
             print("Found NaNs in rating_train_tensor")
         if torch.isnan(rating_test_tensor).any():
             print("Found NaNs in rating_test_tensor")
-        return user_data_tensor, rating_train_tensor, rating_test_tensor
+            
+        return user_data_tensor, rating_train_tensor.t() if self.transpose_ratings else rating_train_tensor, rating_test_tensor
+
+if __name__ == '__main__':
+    val_dataset = MovieLensDataset(ml_path="submission2/ml-100k", split="val", transpose_ratings=True, seed=55)
+    user_data_tensor, rating_train_tensor, rating_test_tensor = val_dataset.__getitem__(1)
+
+    print("User Data Tensor Size:", user_data_tensor.size())
+    print("Rating Train Tensor Size:", rating_train_tensor.size())
+    print("Rating Test Tensor Size:", rating_test_tensor.size())
