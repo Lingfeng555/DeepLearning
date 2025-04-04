@@ -155,7 +155,7 @@ class MovieLensDataset(Dataset):
         if (rating_test_tensor < 0).any():
             print("Found negative values in rating_test_tensor")
     
-        return user_data_tensor, rating_train_tensor.t() if self.transpose_ratings else rating_train_tensor, rating_test_tensor
+        return user_data_tensor, rating_train_tensor.t() if self.transpose_ratings else rating_train_tensor, rating_test_tensor, user_id
 
 if __name__ == '__main__':
     val_dataset = MovieLensDataset(ml_path="submission2/ml-100k", split="val", transpose_ratings=True, seed=55)

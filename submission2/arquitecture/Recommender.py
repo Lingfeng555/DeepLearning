@@ -94,20 +94,14 @@ class Recommender_2 (nn.Module):
             factor=user_factor
             )
         
-        self.experts = nn.ModuleList()
-        for i in range(final_output_size):
-            self.experts.append(
-                VeryBasicMLP(input_size=ratings_embedding_output+user_embedding_output,
-                             output_size=1, factor=expert_factor)
-            )
+        self.experts = VeryBasicMLP(input_size=ratings_embedding_output+user_embedding_output,
+                             output_size=final_output_size, factor=expert_factor)
             
     def forward(self, ratings_tensor, user_tensor):
         ratings_embedding = self.ratings_embedder(ratings_tensor)
         user_embedding = self.user_embedder(user_tensor)
         x = torch.concat([user_embedding, ratings_embedding], dim=-1)
-        x = torch.stack( [ expert(x) for expert in self.experts ], dim=1)
-        x = torch.flatten(x, start_dim=1)
-        return x
+        return self.experts(x)
      
     def n_parameters(self) -> int: return sum(p.numel() for p in self.parameters())
 

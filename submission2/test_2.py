@@ -14,18 +14,19 @@ from arquitecture.Recommender import Recommender_2
 import torch.optim as optim
 
 SEED = 55
-BATCH = 300
+BATCH = 678
 NUN_THREADS = 6
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 #DEVICE = "cpu"
 NUM_EPOCH = 400
-LEARNING_RATE = 0.0005
+LEARNING_RATE = 0.0004
 
 
 # %%
-train_dataset = MovieLensDataset(ml_path="ml-100k", split="train", transpose_ratings=True, seed=SEED)
-test_dataset = MovieLensDataset(ml_path="ml-100k", split="test", transpose_ratings=True, seed=SEED)
-val_dataset = MovieLensDataset(ml_path="ml-100k", split="val", transpose_ratings=True, seed=SEED)
+ml_path = "submission2/ml-100k"
+train_dataset = MovieLensDataset(ml_path=ml_path, split="train", transpose_ratings=True, seed=SEED)
+test_dataset = MovieLensDataset(ml_path=ml_path, split="test", transpose_ratings=True, seed=SEED)
+val_dataset = MovieLensDataset(ml_path=ml_path, split="val", transpose_ratings=True, seed=SEED)
 
 train_dataloader = DataLoader(train_dataset, batch_size=BATCH, shuffle=True, num_workers=NUN_THREADS)
 test_dataloader = DataLoader(test_dataset, batch_size=BATCH, shuffle=True, num_workers=NUN_THREADS)
@@ -46,30 +47,22 @@ for user_data_tensor, rating_train_tensor, rating_test_tensor in train_dataloade
     break
 
 # %%
-num_embeddings = 100
-embedding_dim = 16
-num_ratings = 19
-lstm_hidden_size = 32
-lstm_num_layers = 8
-word_size = 8
-final_mlp_factor = 2
-embedding_output = 19
     
-model = Recommender_2(ratings_num_embeddings = 10000, 
-                 ratings_embedding_dim = 16, 
+model = Recommender_2(ratings_num_embeddings = 101, 
+                 ratings_embedding_dim = 30, 
                  ratings_num_ratings = 22, #Fixed
-                 ratings_lstm_hidden_size  = 32 , 
-                 ratings_lstm_num_layers = 16, 
-                 ratings_word_size = 8,
-                 ratings_final_mlp_factor = 16,
-                 ratings_embedding_output = 40 ,
-                 user_num_embeddings = 10000,
-                 user_embedding_dim = 16,
-                 user_embedding_output = 15,
+                 ratings_lstm_hidden_size  = 34 , 
+                 ratings_lstm_num_layers = 1, 
+                 ratings_word_size = 25,
+                 ratings_final_mlp_factor = 3,
+                 ratings_embedding_output = 36 ,
+                 user_num_embeddings = 100,
+                 user_embedding_dim = 23,
+                 user_embedding_output = 21,
                  user_data_input_dim = 23, #Fixed
-                 user_factor = 16,
+                 user_factor = 14,
                  final_output_size = 19, #Fixed
-                 expert_factor = 6
+                 expert_factor = 7
                  ).to(DEVICE) 
 
 print(f"Model parameters: {sum(p.numel() for p in model.parameters())}")
@@ -111,7 +104,7 @@ for epoch in range(NUM_EPOCH):
     with torch.no_grad():
         for user_data_tensor, rating_train_tensor, rating_test_tensor in val_dataloader:
             
-            outputs = model(user_data_tensor.to(DEVICE), rating_train_tensor.to(DEVICE))        
+            outputs = model(rating_train_tensor.to(DEVICE), user_data_tensor.to(DEVICE))        
             loss = criterion(outputs, rating_test_tensor.to(DEVICE)) 
             
             running_val_loss += loss.item() * rating_test_tensor.size()[1]
